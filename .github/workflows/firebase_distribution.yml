@@ -35,5 +35,6 @@ jobs:
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
+            --groups "${{ secrets.FIREBASE_GROUPS }}" \
             --token "${{ secrets.FIREBASE_TOKEN }}" \
             --release-notes "Build gerada automaticamente pela branch develop"
