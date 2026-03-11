@@ -1,17 +1,37 @@
-# taskflow_app
+# TaskFlow Flutter CI/CD
 
-A new Flutter project.
+A Flutter application created to demonstrate a complete CI/CD pipeline using:
 
-## Getting Started
+- Flutter
+- Firebase Authentication
+- Cloud Firestore
+- BLoC/Cubit
+- GitHub Actions
+- Firebase App Distribution
+- Codemagic
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- Anonymous authentication
+- Task CRUD
+- Real-time updates with Firestore
+- Clean architecture
+- Unit tests
+- Automated CI pipeline
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## CI Pipeline
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The pipeline runs:
+
+- Dart format check
+- Flutter analyze
+- Unit tests
+- APK build
+- Artifact upload
+
+## Future Improvements
+
+- Firebase App Distribution integration
+- Codemagic pipeline
+- Release automation
+
