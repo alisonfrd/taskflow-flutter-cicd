@@ -34,4 +34,3 @@ The pipeline runs:
 - Firebase App Distribution integration
 - Codemagic pipeline
 - Release automation
-

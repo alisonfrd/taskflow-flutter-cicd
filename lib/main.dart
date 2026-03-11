@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskflow_app/app/app.dart';
+import 'package:taskflow_app/core/theme/theme_cubit.dart';
 import 'package:taskflow_app/features/auth/data/auth_repository.dart';
 import 'package:taskflow_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:taskflow_app/features/tasks/data/task_repository.dart';
@@ -15,6 +16,8 @@ Future<void> main() async {
 
   final authRepository = AuthRepository();
   final taskRepository = TaskRepository();
+  final themeCubit = ThemeCubit();
+  await themeCubit.load();
 
   runApp(
     MultiRepositoryProvider(
@@ -24,6 +27,7 @@ Future<void> main() async {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<ThemeCubit>.value(value: themeCubit),
           BlocProvider(
             create: (context) =>
                 AuthCubit(context.read<AuthRepository>())..start(),
