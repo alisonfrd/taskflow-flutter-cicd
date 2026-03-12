@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:taskflow_app/features/tasks/data/task_repository.dart';
 import 'package:taskflow_app/features/tasks/domain/task_item.dart';
 import 'tasks_state.dart';
@@ -22,11 +23,15 @@ class TasksCubit extends Cubit<TasksState> {
         );
   }
 
-  Future<void> addTask({required String userId, required String title}) async {
+  Future<void> addTask({
+    required String userId,
+    required String title,
+    XFile? image,
+  }) async {
     if (title.trim().isEmpty) return;
 
     try {
-      await _taskRepository.addTask(userId: userId, title: title);
+      await _taskRepository.addTask(userId: userId, title: title, image: image);
     } catch (_) {
       emit(const TasksError('Falha ao adicionar tarefa.'));
     }

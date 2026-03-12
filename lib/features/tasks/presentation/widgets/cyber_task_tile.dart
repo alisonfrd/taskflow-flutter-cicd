@@ -192,65 +192,78 @@ class _TaskCard extends StatelessWidget {
                   horizontal: 14,
                   vertical: 12,
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Checkbox customizada
-                    ScaleTransition(
-                      scale: checkScale,
-                      child: _CyberCheckbox(
-                        value: task.isDone,
-                        accentColor: accentColor,
-                        isDark: isDark,
-                        onChanged: (_) => onToggle(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Texto
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 300),
-                            style: GoogleFonts.rajdhani(
-                              fontSize: 15,
-                              fontWeight: task.isDone
-                                  ? FontWeight.w400
-                                  : FontWeight.w600,
-                              color: task.isDone ? subColor : textColor,
-                              letterSpacing: 0.3,
-                              decoration: task.isDone
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                              decorationColor: subColor,
-                            ),
-                            child: Text(
-                              task.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    Row(
+                      children: [
+                        // Checkbox customizada
+                        ScaleTransition(
+                          scale: checkScale,
+                          child: _CyberCheckbox(
+                            value: task.isDone,
+                            accentColor: accentColor,
+                            isDark: isDark,
+                            onChanged: (_) => onToggle(),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDate(task.createdAt),
-                            style: GoogleFonts.rajdhani(
-                              fontSize: 11,
-                              color: subColor.withValues(alpha: 0.7),
-                              letterSpacing: 0.5,
-                            ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Texto
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 300),
+                                style: GoogleFonts.rajdhani(
+                                  fontSize: 15,
+                                  fontWeight: task.isDone
+                                      ? FontWeight.w400
+                                      : FontWeight.w600,
+                                  color: task.isDone ? subColor : textColor,
+                                  letterSpacing: 0.3,
+                                  decoration: task.isDone
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                  decorationColor: subColor,
+                                ),
+                                child: Text(
+                                  task.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatDate(task.createdAt),
+                                style: GoogleFonts.rajdhani(
+                                  fontSize: 11,
+                                  color: subColor.withValues(alpha: 0.7),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+
+                        // Status badge
+                        if (task.isDone)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _DoneBadge(isDark: isDark),
+                          ),
+                      ],
                     ),
 
-                    // Status badge
-                    if (task.isDone)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: _DoneBadge(isDark: isDark),
-                      ),
+                    // Imagem — exclusivo Android
+                    if (task.imageUrl != null &&
+                        Theme.of(context).platform ==
+                            TargetPlatform.android) ...[
+                      const SizedBox(height: 10),
+                      _TaskImage(url: task.imageUrl!, accentColor: accentColor),
+                    ],
                   ],
                 ),
               ),
@@ -371,6 +384,85 @@ class _DeleteBackground extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TaskImage extends StatelessWidget {
+  final String url;
+  final Color accentColor;
+
+  const _TaskImage({required this.url, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showFullImage(context),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 180),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.35),
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              loadingBuilder: (_, child, progress) {
+                if (progress == null) return child;
+                return SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: progress.expectedTotalBytes != null
+                          ? progress.cumulativeBytesLoaded /
+                                progress.expectedTotalBytes!
+                          : null,
+                      color: accentColor,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (_, _, _) => SizedBox(
+                height: 60,
+                child: Center(
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: accentColor.withValues(alpha: 0.5),
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullImage(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (_) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.network(url, fit: BoxFit.contain),
+            ),
+          ),
+        ),
       ),
     );
   }

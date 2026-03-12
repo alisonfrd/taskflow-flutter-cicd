@@ -1,7 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:taskflow_app/core/theme/cyber_colors.dart';
+
+class AddTaskResult {
+  final String title;
+  final XFile? image;
+  const AddTaskResult({required this.title, this.image});
+}
 
 class AddTaskDialog extends StatefulWidget {
   const AddTaskDialog({super.key});
@@ -15,6 +23,7 @@ class _AddTaskDialogState extends State<AddTaskDialog>
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   late final AnimationController _scanCtrl;
+  XFile? _selectedImage;
 
   @override
   void initState() {
@@ -39,7 +48,18 @@ class _AddTaskDialogState extends State<AddTaskDialog>
   void _submit() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    Navigator.of(context).pop(text);
+    Navigator.of(
+      context,
+    ).pop(AddTaskResult(title: text, image: _selectedImage));
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final image = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1280,
+    );
+    if (image != null) setState(() => _selectedImage = image);
   }
 
   @override
@@ -140,6 +160,49 @@ class _AddTaskDialogState extends State<AddTaskDialog>
                         .animate()
                         .fadeIn(duration: 350.ms, delay: 80.ms)
                         .slideY(begin: 0.15, end: 0, duration: 350.ms),
+
+                    // Image picker — exclusivo Android
+                    if (Theme.of(context).platform ==
+                        TargetPlatform.android) ...[
+                      const SizedBox(height: 16),
+                      if (_selectedImage == null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _CyberImageButton(
+                                icon: Icons.photo_library_outlined,
+                                label: 'GALERIA',
+                                color: cs.secondary,
+                                onPressed: () =>
+                                    _pickImage(ImageSource.gallery),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _CyberImageButton(
+                                icon: Icons.camera_alt_outlined,
+                                label: 'CÂMERA',
+                                color: cs.primary,
+                                onPressed: () => _pickImage(ImageSource.camera),
+                              ),
+                            ),
+                          ],
+                        ).animate().fadeIn(duration: 300.ms, delay: 120.ms)
+                      else
+                        _SelectedImagePreview(
+                              image: _selectedImage!,
+                              isDark: isDark,
+                              accentColor: cs.primary,
+                              onRemove: () =>
+                                  setState(() => _selectedImage = null),
+                            )
+                            .animate()
+                            .fadeIn(duration: 250.ms)
+                            .scale(
+                              begin: const Offset(0.95, 0.95),
+                              end: const Offset(1, 1),
+                            ),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -268,6 +331,105 @@ class _CyberFilledButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CyberImageButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _CyberImageButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16, color: color),
+      label: Text(
+        label,
+        style: GoogleFonts.orbitron(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+          color: color,
+        ),
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        side: BorderSide(color: color.withValues(alpha: 0.5), width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+}
+
+class _SelectedImagePreview extends StatelessWidget {
+  final XFile image;
+  final bool isDark;
+  final Color accentColor;
+  final VoidCallback onRemove;
+
+  const _SelectedImagePreview({
+    required this.image,
+    required this.isDark,
+    required this.accentColor,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 160),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: accentColor.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: CyberColors.subtleGlow(accentColor),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(File(image.path), fit: BoxFit.cover),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 6,
+          right: 6,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? CyberColors.darkSurface.withValues(alpha: 0.85)
+                    : CyberColors.lightSurface.withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: accentColor.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(Icons.close_rounded, size: 14, color: accentColor),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

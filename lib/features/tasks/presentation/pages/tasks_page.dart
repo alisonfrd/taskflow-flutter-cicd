@@ -20,15 +20,21 @@ class TasksPage extends StatelessWidget {
   const TasksPage({super.key, required this.userId});
 
   Future<void> _showAddTaskDialog(BuildContext context) async {
-    final title = await showDialog<String>(
+    final result = await showDialog<AddTaskResult>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (_) => const AddTaskDialog(),
     );
 
-    if (title == null || title.trim().isEmpty || !context.mounted) return;
+    if (result == null || result.title.trim().isEmpty || !context.mounted) {
+      return;
+    }
 
-    await context.read<TasksCubit>().addTask(userId: userId, title: title);
+    await context.read<TasksCubit>().addTask(
+      userId: userId,
+      title: result.title,
+      image: result.image,
+    );
   }
 
   @override
