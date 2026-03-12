@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -397,6 +398,8 @@ class _TaskImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRemoteUrl = _isRemoteUrl(url);
+
     return GestureDetector(
       onTap: () => _showFullImage(context),
       child: ClipRRect(
@@ -413,43 +416,60 @@ class _TaskImage extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(7),
-            child: Image.network(
-              url,
-              fit: BoxFit.cover,
-              loadingBuilder: (_, child, progress) {
-                if (progress == null) return child;
-                return SizedBox(
-                  height: 80,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: progress.expectedTotalBytes != null
-                          ? progress.cumulativeBytesLoaded /
-                                progress.expectedTotalBytes!
-                          : null,
-                      color: accentColor,
-                      strokeWidth: 2,
-                    ),
+            child: isRemoteUrl
+                ? Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) {
+                      if (progress == null) return child;
+                      return SizedBox(
+                        height: 80,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: progress.expectedTotalBytes != null
+                                ? progress.cumulativeBytesLoaded /
+                                      progress.expectedTotalBytes!
+                                : null,
+                            color: accentColor,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (_, _, _) => _brokenImage(),
+                  )
+                : Image.file(
+                    File(url),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _brokenImage(),
                   ),
-                );
-              },
-              errorBuilder: (_, _, _) => SizedBox(
-                height: 60,
-                child: Center(
-                  child: Icon(
-                    Icons.broken_image_outlined,
-                    color: accentColor.withValues(alpha: 0.5),
-                    size: 28,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ),
     );
   }
 
+  bool _isRemoteUrl(String value) {
+    final lower = value.toLowerCase();
+    return lower.startsWith('http://') || lower.startsWith('https://');
+  }
+
+  Widget _brokenImage() {
+    return SizedBox(
+      height: 60,
+      child: Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          color: accentColor.withValues(alpha: 0.5),
+          size: 28,
+        ),
+      ),
+    );
+  }
+
   void _showFullImage(BuildContext context) {
+    final isRemoteUrl = _isRemoteUrl(url);
+
     showDialog<void>(
       context: context,
       barrierColor: Colors.black87,
@@ -459,7 +479,9 @@ class _TaskImage extends StatelessWidget {
           backgroundColor: Colors.transparent,
           body: Center(
             child: InteractiveViewer(
-              child: Image.network(url, fit: BoxFit.contain),
+              child: isRemoteUrl
+                  ? Image.network(url, fit: BoxFit.contain)
+                  : Image.file(File(url), fit: BoxFit.contain),
             ),
           ),
         ),
