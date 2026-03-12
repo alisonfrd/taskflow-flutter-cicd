@@ -25,15 +25,28 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Decode Android keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          cat <<EOF > android/key.properties
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=../upload-keystore.jks
+          EOF
+
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --flavor prod -t lib/main_prod.dart --build-name=1.0.0 --build-number=${{ github.run_number }}
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
       - name: Distribute to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-prod-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups "${{ secrets.FIREBASE_GROUPS }}" \
             --token "${{ secrets.FIREBASE_TOKEN }}" \

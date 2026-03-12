@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taskflow_app/core/config/app_config.dart';
 import 'package:taskflow_app/core/theme/cyber_colors.dart';
 import 'package:taskflow_app/core/theme/cyber_theme.dart';
 import 'package:taskflow_app/core/theme/theme_cubit.dart';
@@ -16,10 +17,12 @@ class TaskFlowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final config = context.read<AppConfig>();
+
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, themeState) {
         return MaterialApp(
-          title: 'TaskFlow',
+          title: config.appName,
           debugShowCheckedModeBanner: false,
           theme: CyberTheme.light,
           darkTheme: CyberTheme.dark,
@@ -32,7 +35,7 @@ class TaskFlowApp extends StatelessWidget {
             },
             builder: (context, state) {
               if (state is AuthLoading || state is AuthInitial) {
-                return const _CyberLoadingPage();
+                return _CyberLoadingPage(appName: config.appName);
               }
 
               if (state is Authenticated) {
@@ -43,7 +46,7 @@ class TaskFlowApp extends StatelessWidget {
                 return _CyberErrorPage(message: state.message);
               }
 
-              return const _CyberLoadingPage();
+              return _CyberLoadingPage(appName: config.appName);
             },
           ),
         );
@@ -53,11 +56,14 @@ class TaskFlowApp extends StatelessWidget {
 }
 
 class _CyberLoadingPage extends StatelessWidget {
-  const _CyberLoadingPage();
+  final String appName;
+
+  const _CyberLoadingPage({required this.appName});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final themeMode = context.watch<ThemeCubit>().state.themeMode;
+    final isDark = themeMode == ThemeMode.dark;
     final primary = isDark ? CyberColors.neonCyan : CyberColors.lightPrimary;
 
     return Scaffold(
@@ -86,7 +92,7 @@ class _CyberLoadingPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'TASKFLOW v1.0',
+                  appName.toUpperCase(),
                   style: GoogleFonts.rajdhani(
                     fontSize: 12,
                     color: primary.withValues(alpha: 0.5),
@@ -104,14 +110,18 @@ class _CyberLoadingPage extends StatelessWidget {
 
 class _CyberErrorPage extends StatelessWidget {
   final String message;
+
   const _CyberErrorPage({required this.message});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final themeMode = context.watch<ThemeCubit>().state.themeMode;
+    final isDark = themeMode == ThemeMode.dark;
+
     final errorColor = isDark
         ? const Color(0xFFFF3A3A)
         : const Color(0xFFCC0000);
+
     final bg = isDark ? CyberColors.darkBg : CyberColors.lightBg;
 
     return Scaffold(
@@ -170,6 +180,7 @@ class _CyberErrorPage extends StatelessWidget {
 
 class _ScanLinePainter extends CustomPainter {
   final Color color;
+
   _ScanLinePainter({required this.color});
 
   @override
@@ -177,10 +188,13 @@ class _ScanLinePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 0.5;
+
     const step = 32.0;
+
     for (var y = 0.0; y <= size.height; y += step) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
+
     for (var x = 0.0; x <= size.width; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
