@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taskflow_app/core/config/app_config.dart';
 import 'package:taskflow_app/core/theme/cyber_colors.dart';
 import 'package:taskflow_app/core/theme/theme_cubit.dart';
 import 'package:taskflow_app/core/theme/theme_state.dart';
@@ -19,15 +20,21 @@ class TasksPage extends StatelessWidget {
   const TasksPage({super.key, required this.userId});
 
   Future<void> _showAddTaskDialog(BuildContext context) async {
-    final title = await showDialog<String>(
+    final result = await showDialog<AddTaskResult>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (_) => const AddTaskDialog(),
     );
 
-    if (title == null || title.trim().isEmpty || !context.mounted) return;
+    if (result == null || result.title.trim().isEmpty || !context.mounted) {
+      return;
+    }
 
-    await context.read<TasksCubit>().addTask(userId: userId, title: title);
+    await context.read<TasksCubit>().addTask(
+      userId: userId,
+      title: result.title,
+      image: result.image,
+    );
   }
 
   @override
@@ -91,25 +98,35 @@ class _CyberAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
+    final config = context.read<AppConfig>();
 
     return AppBar(
       backgroundColor: isDark ? CyberColors.darkBg : CyberColors.lightBg,
-      title: GlitchText(
-        'TASKFLOW',
-        style: GoogleFonts.orbitron(
-          fontSize: 20,
-          fontWeight: FontWeight.w900,
-          color: cs.primary,
-          letterSpacing: 3,
-          shadows: isDark
-              ? [
-                  Shadow(
-                    color: cs.primary.withValues(alpha: 0.6),
-                    blurRadius: 12,
-                  ),
-                ]
-              : [],
-        ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GlitchText(
+            'TASKFLOW',
+            style: GoogleFonts.orbitron(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: cs.primary,
+              letterSpacing: 3,
+              shadows: isDark
+                  ? [
+                      Shadow(
+                        color: cs.primary.withValues(alpha: 0.6),
+                        blurRadius: 12,
+                      ),
+                    ]
+                  : [],
+            ),
+          ),
+          if (config.isDev) ...[
+            const SizedBox(width: 8),
+            _DevBadge(isDark: isDark),
+          ],
+        ],
       ),
       actions: [
         // Contador de tarefas
@@ -142,6 +159,87 @@ class _CyberAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
     );
+  }
+}
+
+// ─────────────────────────── DEV BADGE ─────────────────────────
+
+class _DevBadge extends StatefulWidget {
+  final bool isDark;
+  const _DevBadge({required this.isDark});
+
+  @override
+  State<_DevBadge> createState() => _DevBadgeState();
+}
+
+class _DevBadgeState extends State<_DevBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulse = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Laranja neon para DEV (cor diferente do tema principal)
+    const devColor = CyberColors.neonOrange;
+
+    return AnimatedBuilder(
+          animation: _pulse,
+          builder: (_, _) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: devColor.withValues(alpha: 0.12 * _pulse.value + 0.05),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(
+                color: devColor.withValues(alpha: 0.6 * _pulse.value + 0.2),
+                width: 1,
+              ),
+              boxShadow: widget.isDark
+                  ? [
+                      BoxShadow(
+                        color: devColor.withValues(alpha: 0.3 * _pulse.value),
+                        blurRadius: 8,
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Text(
+              'DEV',
+              style: GoogleFonts.orbitron(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: devColor,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 300.ms)
+        .scale(
+          begin: const Offset(0.7, 0.7),
+          end: const Offset(1, 1),
+          duration: 400.ms,
+          curve: Curves.easeOutBack,
+        );
   }
 }
 
