@@ -1,17 +1,58 @@
-# taskflow_app
+![Flutter CI](https://github.com/SEU_USUARIO/SEU_REPO/actions/workflows/flutter_ci.yml/badge.svg)
+![Firebase Distribution](https://github.com/SEU_USUARIO/SEU_REPO/actions/workflows/firebase_distribution.yml/badge.svg)
 
-A new Flutter project.
+# TaskFlow Flutter CI/CD
 
-## Getting Started
+A Flutter study project focused on building a real CI/CD pipeline for mobile applications.
 
-This project is a starting point for a Flutter application.
+## Tech Stack
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter
+- Firebase Authentication
+- Cloud Firestore
+- BLoC / Cubit
+- GitHub Actions
+- Firebase App Distribution
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Anonymous authentication
+- Task creation
+- Task completion
+- Task deletion
+- Real-time task updates with Firestore
+
+## CI
+
+The CI workflow runs on pull requests and pushes to protected branches.
+
+Steps:
+
+- format check
+- static analysis
+- tests
+- APK build
+
+## CD
+
+On pushes to `develop`, the pipeline:
+
+- builds a release APK
+- assigns an automatic build number
+- distributes the build through Firebase App Distribution
+
+## Branch Strategy
+
+- `main`: stable branch
+- `develop`: integration / beta branch
+- `feature/*`: development branches
+
+## Next Steps
+
+- Android signing with keystore
+- Flavors (`dev` / `prod`)
+- Codemagic pipeline
+  th keystore
+- Flavors (`dev` / `prod`)
+- Codemagic pipelineprod`)
+- Codemagic pipeline

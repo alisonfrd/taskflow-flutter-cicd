@@ -6,12 +6,14 @@ class TaskItem extends Equatable {
   final String title;
   final bool isDone;
   final DateTime createdAt;
+  final String? imageUrl;
 
   const TaskItem({
     required this.id,
     required this.title,
     required this.isDone,
     required this.createdAt,
+    this.imageUrl,
   });
 
   TaskItem copyWith({
@@ -19,12 +21,14 @@ class TaskItem extends Equatable {
     String? title,
     bool? isDone,
     DateTime? createdAt,
+    String? imageUrl,
   }) {
     return TaskItem(
       id: id ?? this.id,
       title: title ?? this.title,
       isDone: isDone ?? this.isDone,
       createdAt: createdAt ?? this.createdAt,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -33,6 +37,7 @@ class TaskItem extends Equatable {
       'title': title,
       'isDone': isDone,
       'createdAt': Timestamp.fromDate(createdAt),
+      if (imageUrl != null) 'imageUrl': imageUrl,
     };
   }
 
@@ -47,9 +52,10 @@ class TaskItem extends Equatable {
       title: data['title'] as String? ?? '',
       isDone: data['isDone'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      imageUrl: data['imageUrl'] as String?,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, isDone, createdAt];
+  List<Object?> get props => [id, title, isDone, createdAt, imageUrl];
 }

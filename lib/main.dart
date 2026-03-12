@@ -1,39 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:taskflow_app/app/app.dart';
-import 'package:taskflow_app/features/auth/data/auth_repository.dart';
-import 'package:taskflow_app/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:taskflow_app/features/tasks/data/task_repository.dart';
-import 'package:taskflow_app/features/tasks/presentation/cubit/tasks_cubit.dart';
-import 'firebase_options.dart';
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  final authRepository = AuthRepository();
-  final taskRepository = TaskRepository();
-
-  runApp(
-    MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<AuthRepository>.value(value: authRepository),
-        RepositoryProvider<TaskRepository>.value(value: taskRepository),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) =>
-                AuthCubit(context.read<AuthRepository>())..start(),
-          ),
-          BlocProvider(
-            create: (context) => TasksCubit(context.read<TaskRepository>()),
-          ),
-        ],
-        child: const TaskFlowApp(),
-      ),
-    ),
-  );
-}
+// Ponto de entrada padrão — use o launch.json para selecionar o flavor correto.
+// Para dev:  flutter run --flavor dev  -t lib/main_dev.dart
+// Para prod: flutter run --flavor prod -t lib/main_prod.dart
+export 'main_dev.dart';
