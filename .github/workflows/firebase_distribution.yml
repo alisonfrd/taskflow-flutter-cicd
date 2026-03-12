@@ -19,6 +19,21 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Cache Flutter pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -40,6 +55,20 @@ jobs:
 
       - name: Build release APK
         run: flutter build apk --release --flavor prod -t lib/main_prod.dart --build-name=1.0.0 --build-number=${{ github.run_number }}
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: taskflow-prod-release-apk
+          path: build/app/outputs/flutter-apk/app-prod-release.apk
+          retention-days: 7
+
+      - name: Create Git tag
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag v1.0.${{ github.run_number }}
+          git push origin v1.0.${{ github.run_number }}
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
